@@ -104,8 +104,11 @@ class RouteGenerator {
                 const RegionListView(selectedItem: '', selectedTitle: ''));
       case Routes.locationListRoute:
         return MaterialPageRoute(
-            builder: (_) =>
-                const LocationListView(selectedItem: '', selectedTitle: ''));
+            builder: (_) => const LocationListView(
+                  selectedItem: '',
+                  selectedTitle: '',
+                  selectedRegioId: 0,
+                ));
       case Routes.itemDetailsRoute:
         return MaterialPageRoute(
             builder: (_) => const ItemDetailsView(itemId: 0));

@@ -100,6 +100,7 @@ class _PDFViewScreenState extends State<PDFViewScreen> {
 
   void printPDF() async {
     await Printing.layoutPdf(
+      format: PdfPageFormat.standard.landscape,
       onLayout: (PdfPageFormat format) async => pdfBytes,
     );
   }

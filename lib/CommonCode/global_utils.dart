@@ -28,7 +28,7 @@ class GlobalUtils {
       SnackBar(
         content: Text(message!),
         backgroundColor: Colors.red,
-        duration: Duration(seconds: seconds!),
+        duration: Duration(seconds: seconds ?? 2),
         onVisible: onVisible,
       ),
     );

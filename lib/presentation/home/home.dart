@@ -1,8 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
+import 'package:eyvo_inventory/CommonCode/global_utils.dart';
 import 'package:eyvo_inventory/api/api_service/api_service.dart';
 import 'package:eyvo_inventory/api/api_service/bloc.dart';
 import 'package:eyvo_inventory/api/response_models/dashboard_response.dart';
+import 'package:eyvo_inventory/api/response_models/location_response.dart';
 import 'package:eyvo_inventory/app/app_prefs.dart';
 import 'package:eyvo_inventory/app/sizes_helper.dart';
 import 'package:eyvo_inventory/core/resources/assets_manager.dart';
@@ -16,7 +20,6 @@ import 'package:eyvo_inventory/core/widgets/custom_card_item.dart';
 import 'package:eyvo_inventory/core/widgets/custom_list_tile.dart';
 import 'package:eyvo_inventory/core/widgets/progress_indicator.dart';
 import 'package:eyvo_inventory/core/widgets/title_header.dart';
-import 'package:eyvo_inventory/log_data.dart/logger_data.dart';
 import 'package:eyvo_inventory/presentation/change_password/change_password.dart';
 import 'package:eyvo_inventory/presentation/item_details/item_details.dart';
 import 'package:eyvo_inventory/presentation/item_list/item_list.dart';
@@ -48,14 +51,18 @@ class _HomeViewState extends State<HomeView> {
   List<String> items = [];
   List<String> menuItems = [];
   String selectRegionTitle = '';
-  String selectedRegion = SharedPrefs().selectedRegion;
   String selectLocationTitle = '';
-  String selectedLocation = SharedPrefs().selectedLocation;
+  String? selectedRegion;
+  String? selectedLocation;
   final ApiService apiService = ApiService();
   bool isError = false;
   String errorText = AppStrings.somethingWentWrong;
+  bool isFetchingLocation = false; // Add this variable
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  int? selectedRegionId;
+  bool isLocationNull = false;
 
   @override
   void initState() {
@@ -105,6 +112,7 @@ class _HomeViewState extends State<HomeView> {
             isLocationEditable = response.data[0].locationEdit;
             isScanItemsEnabled = response.data[0].scanYourItem;
             isListItemsEnabled = response.data[0].listAllItems;
+            selectedRegionId = response.data[0].locationId;
             isGREnabled = response.data[0].gr;
             SharedPrefs().decimalPlaces = response.data[0].decimalPlaces;
             isPermissionDenied = (!isRegionEnabled &&
@@ -121,59 +129,6 @@ class _HomeViewState extends State<HomeView> {
         errorText = response.message.join(', ');
       }
     }
-
-    // final res =
-    //     await globalBloc.doFetchDashboardItem(context, SharedPrefs().uID);
-    // if (res != null) {
-    //   final response = DashboardResponse.fromJson(res);
-    //   if (response.code == '200') {
-    //     setState(() {
-    //       var dataList = res['data'] as String;
-
-    //       List<dynamic> data = jsonDecode(dataList);
-
-    //       for (var item in data) {
-    //         item.forEach((key, value) {
-    //           if (value is bool && value == true) {
-    //             if (key != AppStrings.apiKeyRegion &&
-    //                 key != AppStrings.apiKeyEditRegion &&
-    //                 key != AppStrings.apiKeyLocation &&
-    //                 key != AppStrings.apiKeyEditLocation) {
-    //               items.add(key);
-    //             }
-    //           }
-    //         });
-    //       }
-
-    //       if (response.data.isNotEmpty) {
-    //         SharedPrefs().selectedRegionID = response.data[0].regionId;
-    //         SharedPrefs().selectedLocationID = response.data[0].locationId;
-    //         selectRegionTitle = response.data[0].regionLabelName;
-    //         selectedRegion = response.data[0].regionName;
-    //         selectLocationTitle = response.data[0].locationLabelName;
-    //         selectedLocation = response.data[0].locationName;
-    //         isRegionEnabled = response.data[0].region;
-    //         isRegionEditable = response.data[0].regionEdit;
-    //         isLocationEnabled = response.data[0].location;
-    //         isLocationEditable = response.data[0].locationEdit;
-    //         isScanItemsEnabled = response.data[0].scanYourItem;
-    //         isListItemsEnabled = response.data[0].listAllItems;
-    //         isGREnabled = response.data[0].gr;
-    //         SharedPrefs().decimalPlaces = response.data[0].decimalPlaces;
-    //         isPermissionDenied = (!isRegionEnabled &&
-    //                 !isLocationEnabled &&
-    //                 !isScanItemsEnabled &&
-    //                 !isListItemsEnabled &&
-    //                 !isGREnabled)
-    //             ? true
-    //             : false;
-    //       }
-    //     });
-    //   } else {
-    //     isError = true;
-    //     errorText = response.message.join(', ');
-    //   }
-    // }
 
     setState(() {
       isLoading = false;
@@ -226,6 +181,45 @@ class _HomeViewState extends State<HomeView> {
   void logoutUser() {
     Navigator.pushNamedAndRemoveUntil(
         context, Routes.loginRoute, (Route<dynamic> route) => false);
+  }
+
+  void fetchNewLocation(int regionId) async {
+    setState(() {
+      isFetchingLocation = true; // Set fetching location to true
+    });
+
+    Map<String, dynamic> data = {
+      //'uid': SharedPrefs().uID,
+      'regionid': regionId
+    };
+    final jsonResponse =
+        await apiService.postRequest(context, ApiService.locationList, data);
+    if (jsonResponse != null) {
+      final response = LocationResponse.fromJson(jsonResponse);
+      if (response.code == '200') {
+        setState(() {
+          selectedLocation = response.data![0].locationCode;
+          isLocationNull = false;
+          SharedPrefs().selectedLocationID = response.data![0].locationId!;
+          
+        });
+      } else if (response.code == '400') {
+        setState(() {
+          selectedLocation = '';
+          isLocationNull = true;
+          SharedPrefs().selectedLocationID = 0;
+        });
+      } else {
+        setState(() {
+          isError = true;
+          errorText = response.message.join(', ');
+        });
+      }
+    }
+
+    setState(() {
+      isFetchingLocation = false; // Set fetching location to false
+    });
   }
 
   @override
@@ -323,7 +317,6 @@ class _HomeViewState extends State<HomeView> {
           ],
         ),
       ),
-      // ),
       body: isLoading
           ? const Center(child: CustomProgressIndicator())
           : isPermissionDenied
@@ -367,22 +360,27 @@ class _HomeViewState extends State<HomeView> {
                           ? CustomItemCardWithEdit(
                               imageString: ImageAssets.selectSite,
                               title: selectRegionTitle,
-                              subtitle: selectedRegion,
+                              subtitle: selectedRegion!,
                               onEdit: isRegionEditable
                                   ? () async {
                                       final result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => RegionListView(
-                                              selectedItem: selectedRegion,
+                                              selectedItem: selectedRegion!,
                                               selectedTitle: selectRegionTitle),
                                         ),
                                       );
+
                                       if (result != null) {
                                         setState(() {
                                           selectedRegion =
                                               SharedPrefs().selectedRegion;
+                                          selectedRegionId =
+                                              SharedPrefs().selectedRegionID;
                                         });
+                                        fetchNewLocation(
+                                            SharedPrefs().selectedRegionID);
                                       }
                                     }
                                   : () {},
@@ -394,34 +392,42 @@ class _HomeViewState extends State<HomeView> {
                           ? const SizedBox(height: 25)
                           : const SizedBox(),
                       isLocationEnabled
-                          ? CustomItemCardWithEdit(
-                              imageString: ImageAssets.selectLocation,
-                              title: selectLocationTitle,
-                              subtitle: selectedLocation,
-                              onEdit: isLocationEditable
-                                  ? () async {
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              LocationListView(
-                                                  selectedItem:
-                                                      selectedLocation,
-                                                  selectedTitle:
-                                                      selectLocationTitle),
-                                        ),
-                                      );
-                                      if (result != null) {
-                                        setState(() {
-                                          selectedLocation =
-                                              SharedPrefs().selectedLocation;
-                                        });
-                                      }
-                                    }
-                                  : () {},
-                              backgroundColor: ColorManager.white,
-                              cornerRadius: 10,
-                              isEditable: isLocationEditable)
+                          ? Visibility(
+                              visible: !isFetchingLocation,
+                              replacement: const Center(
+                                  child: CircularProgressIndicator()),
+                              child: CustomItemCardWithEdit(
+                                  imageString: ImageAssets.selectLocation,
+                                  title: selectLocationTitle,
+                                  subtitle: selectedLocation ?? "",
+                                  onEdit: isLocationEditable
+                                      ? () async {
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  LocationListView(
+                                                selectedItem: selectedLocation!,
+                                                selectedTitle:
+                                                    selectLocationTitle,
+                                                selectedRegioId:
+                                                    selectedRegionId!,
+                                              ),
+                                            ),
+                                          );
+
+                                          if (result != null) {
+                                            setState(() {
+                                              selectedLocation = SharedPrefs()
+                                                  .selectedLocation;
+                                            });
+                                          }
+                                        }
+                                      : () {},
+                                  backgroundColor: ColorManager.white,
+                                  cornerRadius: 10,
+                                  isEditable: isLocationEditable),
+                            )
                           : const SizedBox(),
                       isLocationEnabled
                           ? const SizedBox(height: 25)
@@ -450,14 +456,24 @@ class _HomeViewState extends State<HomeView> {
                                                 : AppStrings.receiveGoods,
                                         backgroundColor: ColorManager.white,
                                         cornerRadius: 10,
-                                        onTap: () {
-                                          items[0] == AppStrings.apiKeyScanItems
-                                              ? navigateToScanItems()
-                                              : items[0] ==
-                                                      AppStrings.apiKeyListItems
-                                                  ? navigateToListItems()
-                                                  : navigateToReceiveGoods();
-                                        }),
+                                        onTap: isLocationNull
+                                            ? () {
+                                                globalUtils.showNegativeSnackBar(
+                                                    context: context,
+                                                    message:
+                                                        "Location Required");
+                                              }
+                                            : () {
+                                                items[0] ==
+                                                        AppStrings
+                                                            .apiKeyScanItems
+                                                    ? navigateToScanItems()
+                                                    : items[0] ==
+                                                            AppStrings
+                                                                .apiKeyListItems
+                                                        ? navigateToListItems()
+                                                        : navigateToReceiveGoods();
+                                              }),
                                     const Spacer(),
                                     CustomItemCard(
                                         imageString: items[1] ==
@@ -476,14 +492,24 @@ class _HomeViewState extends State<HomeView> {
                                                 : AppStrings.receiveGoods,
                                         backgroundColor: ColorManager.white,
                                         cornerRadius: 10,
-                                        onTap: () {
-                                          items[1] == AppStrings.apiKeyScanItems
-                                              ? navigateToScanItems()
-                                              : items[1] ==
-                                                      AppStrings.apiKeyListItems
-                                                  ? navigateToListItems()
-                                                  : navigateToReceiveGoods();
-                                        }),
+                                        onTap: isLocationNull
+                                            ? () {
+                                                globalUtils.showNegativeSnackBar(
+                                                    context: context,
+                                                    message:
+                                                        "Location Required");
+                                              }
+                                            : () {
+                                                items[1] ==
+                                                        AppStrings
+                                                            .apiKeyScanItems
+                                                    ? navigateToScanItems()
+                                                    : items[1] ==
+                                                            AppStrings
+                                                                .apiKeyListItems
+                                                        ? navigateToListItems()
+                                                        : navigateToReceiveGoods();
+                                              }),
                                   ],
                                 ),
                               ),
@@ -514,16 +540,25 @@ class _HomeViewState extends State<HomeView> {
                                                     : AppStrings.receiveGoods,
                                             backgroundColor: ColorManager.white,
                                             cornerRadius: 10,
-                                            onTap: () {
-                                              items[0] ==
-                                                      AppStrings.apiKeyScanItems
-                                                  ? navigateToScanItems()
-                                                  : items[0] ==
-                                                          AppStrings
-                                                              .apiKeyListItems
-                                                      ? navigateToListItems()
-                                                      : navigateToReceiveGoods();
-                                            }),
+                                            onTap: isLocationNull
+                                                ? () {
+                                                    globalUtils
+                                                        .showNegativeSnackBar(
+                                                            context: context,
+                                                            message:
+                                                                "Location Required");
+                                                  }
+                                                : () {
+                                                    items[0] ==
+                                                            AppStrings
+                                                                .apiKeyScanItems
+                                                        ? navigateToScanItems()
+                                                        : items[0] ==
+                                                                AppStrings
+                                                                    .apiKeyListItems
+                                                            ? navigateToListItems()
+                                                            : navigateToReceiveGoods();
+                                                  }),
                                         const Spacer(),
                                       ],
                                     ),
@@ -555,14 +590,24 @@ class _HomeViewState extends State<HomeView> {
                                                 : AppStrings.receiveGoods,
                                         backgroundColor: ColorManager.white,
                                         cornerRadius: 10,
-                                        onTap: () {
-                                          items[2] == AppStrings.apiKeyScanItems
-                                              ? navigateToScanItems()
-                                              : items[2] ==
-                                                      AppStrings.apiKeyListItems
-                                                  ? navigateToListItems()
-                                                  : navigateToReceiveGoods();
-                                        }),
+                                        onTap: isLocationNull
+                                            ? () {
+                                                globalUtils.showNegativeSnackBar(
+                                                    context: context,
+                                                    message:
+                                                        "Location Required");
+                                              }
+                                            : () {
+                                                items[2] ==
+                                                        AppStrings
+                                                            .apiKeyScanItems
+                                                    ? navigateToScanItems()
+                                                    : items[2] ==
+                                                            AppStrings
+                                                                .apiKeyListItems
+                                                        ? navigateToListItems()
+                                                        : navigateToReceiveGoods();
+                                              }),
                                     const Spacer(),
                                   ],
                                 ),

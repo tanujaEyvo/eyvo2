@@ -1,5 +1,4 @@
 import 'package:eyvo_inventory/api/api_service/api_service.dart';
-import 'package:eyvo_inventory/api/api_service/bloc.dart';
 import 'package:eyvo_inventory/api/response_models/location_response.dart';
 import 'package:eyvo_inventory/app/app_prefs.dart';
 import 'package:eyvo_inventory/app/sizes_helper.dart';
@@ -16,8 +15,12 @@ import 'package:flutter/material.dart';
 class LocationListView extends StatefulWidget {
   final String selectedItem;
   final String selectedTitle;
+  final int selectedRegioId;
   const LocationListView(
-      {super.key, required this.selectedItem, required this.selectedTitle});
+      {super.key,
+      required this.selectedItem,
+      required this.selectedTitle,
+      required this.selectedRegioId});
 
   @override
   State<LocationListView> createState() => _LocationListViewState();
@@ -42,7 +45,8 @@ class _LocationListViewState extends State<LocationListView> {
     });
 
     Map<String, dynamic> data = {
-      'uid': SharedPrefs().uID,
+      //  'uid': SharedPrefs().uID,
+      'regionid': widget.selectedRegioId
     };
     final jsonResponse =
         await apiService.postRequest(context, ApiService.locationList, data);
@@ -50,7 +54,7 @@ class _LocationListViewState extends State<LocationListView> {
       final response = LocationResponse.fromJson(jsonResponse);
       if (response.code == '200') {
         setState(() {
-          locationItems = response.data;
+          locationItems = response.data!;
         });
       } else {
         isError = true;
@@ -58,16 +62,6 @@ class _LocationListViewState extends State<LocationListView> {
       }
     }
 
-    // var res = await globalBloc.doFetchLoginUserData(context, SharedPrefs().uID);
-
-    // if (res.code == '200') {
-    //   setState(() {
-    //     locationItems = res.data;
-    //   });
-    // } else {
-    //   isError = true;
-    //   errorText = res.message.join(', ');
-    // }
     setState(() {
       isLoading = false;
     });
@@ -168,7 +162,7 @@ class _LocationListViewState extends State<LocationListView> {
                                     return Padding(
                                       padding: const EdgeInsets.all(0.0),
                                       child: ListTile(
-                                        title: Text(item.locationCode,
+                                        title: Text(item.locationCode!,
                                             style: item.locationCode ==
                                                     widget.selectedItem
                                                 ? getMediumStyle(
@@ -180,9 +174,10 @@ class _LocationListViewState extends State<LocationListView> {
                                                     fontSize: FontSize.s23_25)),
                                         onTap: () {
                                           SharedPrefs().selectedLocation =
-                                              item.locationCode;
+                                              item.locationCode!;
                                           SharedPrefs().selectedLocationID =
-                                              item.locationId;
+                                              item.locationId!;
+
                                           showSnackBar(context,
                                               '${AppStrings.locationSelectedMessage}${item.locationCode}');
                                           Navigator.pop(
