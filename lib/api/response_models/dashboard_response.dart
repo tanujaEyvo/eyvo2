@@ -42,6 +42,7 @@ class Data {
   final bool listAllItems;
   final bool gr;
   final int decimalPlaces;
+  final int decimalplacesprice;
 
   Data({
     required this.region,
@@ -58,6 +59,7 @@ class Data {
     required this.listAllItems,
     required this.gr,
     required this.decimalPlaces,
+    required this.decimalplacesprice,
   });
 
   factory Data.fromJson(Map<String, dynamic> json) {
@@ -76,6 +78,7 @@ class Data {
       listAllItems: json['listallitems'],
       gr: json['gr'],
       decimalPlaces: json['decimalplaces'],
+      decimalplacesprice: json['decimalplacesprice'],
     );
   }
 }

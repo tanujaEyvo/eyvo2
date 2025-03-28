@@ -21,6 +21,7 @@ const String PREFS_KEY_SELECTED_LOCATION = "PREFS_KEY_SELECTED_LOCATION";
 const String PREFS_KEY_SELECTED_LOCATION_ID = "PREFS_KEY_SELECTED_LOCATION_ID";
 const String PREFS_KEY_USER_SESSION = "PREFS_KEY_USER_SESSION";
 const String PREFS_KEY_DECIMAL_PLACES = "PREFS_KEY_DECIMAL_PLACES";
+const String PREFS_KEY_DECIMAL_PLACES_PRICE = "PREFS_KEY_DECIMAL_PLACES_PRICE";
 const String PREFS_KEY_IS_ITEM_SCANNED = "PREFS_KEY_IS_ITEM_SCANNED";
 const String PREFS_KEY_SCANNED_REGION_ID = "PREFS_KEY_SCANNED_REGION_ID";
 const String PREFS_KEY_SCANNED_LOCATION_ID = "PREFS_KEY_SCANNED_LOCATION_ID";
@@ -141,6 +142,13 @@ class SharedPrefs {
 
   set decimalPlaces(int value) {
     _sharedPrefs.setInt(PREFS_KEY_DECIMAL_PLACES, value);
+  }
+
+  int get decimalplacesprice =>
+      _sharedPrefs.getInt(PREFS_KEY_DECIMAL_PLACES_PRICE) ?? 0;
+
+  set decimalplacesprice(int value) {
+    _sharedPrefs.setInt(PREFS_KEY_DECIMAL_PLACES_PRICE, value);
   }
 
   String get userSession =>

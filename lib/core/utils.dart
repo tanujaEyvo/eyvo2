@@ -101,6 +101,57 @@ String getFormattedString(double number) {
   return number.toStringAsFixed(SharedPrefs().decimalPlaces);
 }
 
+// String getFormattedPriceStringPrice(double price) {
+//   var priceFormatter = NumberFormat.currency(
+//       locale: 'en_US',
+//       symbol: '',
+//       decimalDigits: SharedPrefs().decimalplacesprice);
+//   String formattedPrice = priceFormatter.format(price);
+//   return formattedPrice;
+// }
+String getFormattedPriceStringPrice(double price) {
+  var priceFormatter = NumberFormat.currency(
+      locale: 'en_US',
+      symbol: '',
+      decimalDigits: SharedPrefs().decimalplacesprice);
+  String formattedPrice = priceFormatter.format(price);
+
+  // Ensure at least two decimal places are retained
+  if (formattedPrice.contains('.')) {
+    formattedPrice =
+        formattedPrice.replaceAll(RegExp(r'0+$'), ''); // Remove trailing zeroes
+
+    // Ensure at least two decimal places remain
+    int decimalIndex = formattedPrice.indexOf('.');
+    if (decimalIndex != -1 && formattedPrice.length - decimalIndex - 1 < 2) {
+      formattedPrice = formattedPrice.padRight(decimalIndex + 3, '0');
+    }
+  }
+
+  return formattedPrice;
+}
+
+// String getFormattedStringPrice(double number) {
+//   return number.toStringAsFixed(SharedPrefs().decimalplacesprice);
+// }
+String getFormattedStringPrice(double number) {
+  String formatted = number.toStringAsFixed(SharedPrefs()
+      .decimalplacesprice); // Convert to string with 5 decimal places
+
+  if (formatted.contains('.')) {
+    formatted =
+        formatted.replaceAll(RegExp(r'0+$'), ''); // Remove trailing zeroes
+
+    // Ensure at least two decimal places remain
+    int decimalIndex = formatted.indexOf('.');
+    if (decimalIndex != -1 && formatted.length - decimalIndex - 1 < 2) {
+      formatted = formatted.padRight(decimalIndex + 3, '0');
+    }
+  }
+
+  return formatted;
+}
+
 String getDefaultString(String formattedString) {
   return formattedString.replaceAll(',', '');
 }

@@ -44,7 +44,7 @@ class _ItemDetailsViewState extends State<ItemDetailsView> {
     super.initState();
     _quantityController.text = getFormattedString(1.0);
     _dateController.text = DateFormat('dd-MMM-yyyy').format(selectedDate);
-    _priceController.text = getFormattedString(0.0);
+    _priceController.text = getFormattedStringPrice(0.0);
     fetchItemDetails();
     priceFocusNode.addListener(() {
       if (!priceFocusNode.hasFocus) {
@@ -74,9 +74,9 @@ class _ItemDetailsViewState extends State<ItemDetailsView> {
     if (_priceController.text.isNotEmpty) {
       _priceController.text = getDefaultString(_priceController.text);
       _priceController.text =
-          getFormattedPriceString(double.parse(_priceController.text));
+          getFormattedPriceStringPrice(double.parse(_priceController.text));
     } else {
-      _priceController.text = getFormattedPriceString(0);
+      _priceController.text = getFormattedPriceStringPrice(0);
     }
   }
 
@@ -113,7 +113,8 @@ class _ItemDetailsViewState extends State<ItemDetailsView> {
       setState(() {
         if (response.code == '200') {
           items = response.data;
-          _priceController.text = getFormattedPriceString(items[0].basePrice);
+          _priceController.text =
+              getFormattedPriceStringPrice(items[0].basePrice);
           isItemEditable = items[0].itemEdit;
         } else {
           isError = true;
