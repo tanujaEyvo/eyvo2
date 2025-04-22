@@ -596,10 +596,11 @@ class _LoginViewPageState extends State<LoginViewPage> {
                                   isLoginWithScan
                                       ? const SizedBox(height: 10)
                                       : const SizedBox(),
-                                  const OrDivider(),
+                                  //const OrDivider(),
                                   isLoginWithScan
                                       ? Column(
                                           children: [
+                                            const OrDivider(),
                                             const SizedBox(height: 20),
                                             isLoadingForScan
                                                 ? const CustomProgressIndicator()
