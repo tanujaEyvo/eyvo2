@@ -32,6 +32,7 @@ class _SplashViewState extends State<SplashView> {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     setState(() {
       _version = 'v${packageInfo.version}';
+      SharedPrefs().mobileVersion = _version;
     });
   }
 

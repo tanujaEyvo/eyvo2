@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:ffi';
 
 import 'package:eyvo_inventory/CommonCode/global_utils.dart';
 import 'package:eyvo_inventory/api/api_service/api_service.dart';
@@ -260,9 +261,8 @@ class _HomeViewState extends State<HomeView> {
                     child: Text(
                       displayUserName,
                       style: TextStyle(fontSize: 24, color: ColorManager.blue),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: false,
+                      maxLines: 2,
+                      overflow: TextOverflow.visible,
                     ),
                   ),
                 ],
@@ -335,6 +335,17 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
             ),
+            const Spacer(),
+            Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  SharedPrefs().mobileVersion,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: ColorManager.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )),
           ],
         ),
       ),
