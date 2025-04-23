@@ -63,6 +63,7 @@ class _HomeViewState extends State<HomeView> {
   int? selectedRegionId;
   bool isLocationNull = false;
   String displayUserName = SharedPrefs().displayUserName;
+  int totalRecords = 0;
   @override
   void initState() {
     super.initState();
@@ -201,11 +202,14 @@ class _HomeViewState extends State<HomeView> {
     //log("@@@@@@@@@@@@@@@@@@@@@@:$jsonResponse");
     if (jsonResponse != null) {
       final response = LocationResponse.fromJson(jsonResponse);
+      totalRecords = response.totalRecords;
+
       if (response.code == '200') {
         setState(() {
           selectedLocation = response.data![0].locationCode;
           SharedPrefs().selectedLocationID = response.data![0].locationId!;
           isLocationNull = false;
+          isLocationEditable = totalRecords > 1;
         });
       } else if (response.code == '400') {
         setState(() {
