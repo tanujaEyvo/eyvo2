@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:ffi';
 
 import 'package:eyvo_inventory/CommonCode/global_utils.dart';
 import 'package:eyvo_inventory/api/api_service/api_service.dart';
@@ -62,6 +63,7 @@ class _HomeViewState extends State<HomeView> {
   int? selectedRegionId;
   bool isLocationNull = false;
   String displayUserName = SharedPrefs().displayUserName;
+  int totalRecords = 0;
   @override
   void initState() {
     super.initState();
@@ -200,11 +202,14 @@ class _HomeViewState extends State<HomeView> {
     //log("@@@@@@@@@@@@@@@@@@@@@@:$jsonResponse");
     if (jsonResponse != null) {
       final response = LocationResponse.fromJson(jsonResponse);
+      totalRecords = response.totalRecords;
+
       if (response.code == '200') {
         setState(() {
           selectedLocation = response.data![0].locationCode;
           SharedPrefs().selectedLocationID = response.data![0].locationId!;
           isLocationNull = false;
+          isLocationEditable = totalRecords > 1;
         });
       } else if (response.code == '400') {
         setState(() {
@@ -260,9 +265,8 @@ class _HomeViewState extends State<HomeView> {
                     child: Text(
                       displayUserName,
                       style: TextStyle(fontSize: 24, color: ColorManager.blue),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: false,
+                      maxLines: 2,
+                      overflow: TextOverflow.visible,
                     ),
                   ),
                 ],
@@ -335,6 +339,17 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
             ),
+            const Spacer(),
+            Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  SharedPrefs().mobileVersion,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: ColorManager.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )),
           ],
         ),
       ),

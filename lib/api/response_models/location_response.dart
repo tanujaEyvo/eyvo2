@@ -41,7 +41,7 @@ class LocationResponse {
       code: json['code'],
       message: List<String>.from(json['message']),
       data: locations,
-      totalRecords: json['totalrecords'],
+      totalRecords: json['totalrecords'] ?? 0,
     );
   }
 }
